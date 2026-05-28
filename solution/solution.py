@@ -261,19 +261,17 @@ def streaming_chatbot() -> None:
             print("Goodbye!")
             break
 
-        history.append({"role": "user", "content": user_input})
+        history.append(user_input)
         if len(history) > 6:
             history = history[-6:]
 
-        formatted_history = []
-        for i, msg in enumerate(history):
-            role = "user" if i % 2 == 0 else "model"
-            formatted_history.append({"role": role, "parts": [msg["content"]]})
+        # Build contents from history - simple string format for new SDK
+        contents = "\n".join([f"User: {h}" if i % 2 == 0 else f"Assistant: {h}" for i, h in enumerate(history)])
 
         print("Gemini: ", end="", flush=True)
         response_stream = client.models.generate_content_stream(
             model=GEMINI_MODEL,
-            contents=formatted_history,
+            contents=contents,
         )
         response_text = ""
         for chunk in response_stream:
@@ -281,7 +279,7 @@ def streaming_chatbot() -> None:
             response_text += chunk.text
         print()
 
-        history.append({"role": "model", "content": response_text})
+        history.append(response_text)
 
 
 # ---------------------------------------------------------------------------
